@@ -17,13 +17,13 @@ import java.util.stream.Collectors;
 @CrossOrigin
 @RestController
 @RequestMapping("/users")
-@Tag(name = "Users Controller", description = "RESTful API for managing users.")
+@Tag(name = "Controlador de Usuários", description = "API RESTful para gerenciamento de usuários.")
 public record UserController(UserService userService) {
 
     @GetMapping
-    @Operation(summary = "Get all users", description = "Retrieve a list of all registered users")
+    @Operation(summary = "Listar todos os usuários", description = "Recupera uma lista de todos os usuários cadastrados")
     @ApiResponses(value = { 
-            @ApiResponse(responseCode = "200", description = "Operation successful")
+            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso")
     })
     public ResponseEntity<List<UserDto>> findAll() {
         var users = userService.findAll();
@@ -32,21 +32,34 @@ public record UserController(UserService userService) {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get a user by ID", description = "Retrieve a specific user based on its ID")
+    @Operation(summary = "Obter usuário por ID", description = "Recupera um usuário específico com base no seu ID")
     @ApiResponses(value = { 
-            @ApiResponse(responseCode = "200", description = "Operation successful"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserDto> findById(@PathVariable Long id) {
         var user = userService.findById(id);
         return ResponseEntity.ok(new UserDto(user));
     }
 
-    @PostMapping
-    @Operation(summary = "Create a new user", description = "Create a new user and return the created user's data")
+    @GetMapping("/ativos")
+    @Operation(summary = "Obter usuários ativos", description = "Retorna apenas os usuários que estão ativos")
     @ApiResponses(value = { 
-            @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "422", description = "Invalid user data provided")
+            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso")
+    })
+    public ResponseEntity<List<UserDto>> findUsuariosAtivos() {
+        var usuariosAtivos = userService.findAll().stream()
+                                        .filter(user -> Boolean.TRUE.equals(user.getActive()))
+                                        .map(UserDto::new)
+                                        .collect(Collectors.toList());
+        return ResponseEntity.ok(usuariosAtivos);
+    }
+
+    @PostMapping
+    @Operation(summary = "Criar um novo usuário", description = "Cria um novo usuário e retorna os dados do usuário criado")
+    @ApiResponses(value = { 
+            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos fornecidos")
     })
     public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
         var user = userService.create(userDto.toModel());
@@ -58,11 +71,11 @@ public record UserController(UserService userService) {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update a user", description = "Update the data of an existing user based on its ID")
+    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente com base no seu ID")
     @ApiResponses(value = { 
-            @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "422", description = "Invalid user data provided")
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos fornecidos")
     })
     public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody UserDto userDto) {
         var user = userService.update(id, userDto.toModel());
@@ -70,10 +83,10 @@ public record UserController(UserService userService) {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a user", description = "Delete an existing user based on its ID")
+    @Operation(summary = "Deletar usuário", description = "Deleta um usuário existente com base no seu ID")
     @ApiResponses(value = { 
-            @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "204", description = "Usuário deletado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
